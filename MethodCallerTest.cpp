@@ -3,137 +3,119 @@
 
 using namespace testing;
 
-namespace rmi
-{
+namespace rmi {
 
-/// Asserts the remote object receives the correct arguments (of type string and
-/// int).
-static void
-assertRemoteObjectGetsCorrectArguments(MultitypeSpy &RemoteObject,
-                                       std::string &SerializedString,
-                                       int SerializedInteger)
-{
-  ASSERT_EQ(RemoteObject.getReceivedString(), SerializedString);
-  ASSERT_EQ(RemoteObject.getReceivedInteger(), SerializedInteger);
+  // Custom assertions.
+  
+  static void assertRemoteObjectGetsCorrectArguments(MultitypeSpy &remoteObject,
+                                                     std::string &serializedString,
+                                                     int serializedInteger) {
+    
+    ASSERT_EQ(remoteObject.getReceivedString(), serializedString);
+    ASSERT_EQ(remoteObject.getReceivedInteger(), serializedInteger);
+  }
+
+  template <typename T>
+  static void assertByteArrayContains(ByteArray &byteArray, T expectedValue) {
+
+    DataStream stream(byteArray);
+    T valueInByteArray;
+    stream >> valueInByteArray;
+
+    ASSERT_EQ(valueInByteArray, expectedValue);
+  }
+
+  
+  // Parameterized tests.
+
+  static void testMethodWithStringReferenceParameter(std::unique_ptr<IRemoteMethod> remoteMethod) {
+
+    StringReferenceSpy remoteObject;
+    ByteArray methodArgumentsArray;
+    const std::string expectedString = serializeStringInto(methodArgumentsArray);
+
+    remoteMethod->invoke(remoteObject, methodArgumentsArray);
+
+    ASSERT_EQ(remoteObject.getReceivedString(), expectedString);
+  }
+
+  template <typename RemoteObjType>
+  static void testMethodWithStringReferenceReturnType(std::unique_ptr<IRemoteMethod> remoteMethod) {
+
+    RemoteObjType remoteObject;
+    std::string expectedString = "Test String";
+    remoteObject.setStringToReturn(expectedString);
+    ByteArray emptyArguments;
+
+    ByteArray resultByteArray = remoteMethod->invoke(remoteObject, emptyArguments);
+
+    assertByteArrayContains<std::string>(resultByteArray, expectedString);
+  }
+  
+  
+  // Test methods.
+
+  TEST_F(GivenMethodCallerOfVoidMethodWithNoArguments, WhenItIsInvokedThenReceiverObjectGetsTheMessage) {
+
+    BooleanSpy remoteObject;
+    ByteArray emptyArguments;
+
+    RemoteMethod->invoke(remoteObject, emptyArguments);
+
+    ASSERT_TRUE(remoteObject.isCalled());
+  }
+
+  TEST_F(GivenMethodCallerOfVoidMethodWithNoArguments, WhenItIsInvokedThenItReturnsEmptyByteArray) {
+
+    BooleanSpy remoteObject;
+    ByteArray emptyArguments;
+
+    const ByteArray byteArray = RemoteMethod->invoke(remoteObject, emptyArguments);
+
+    ASSERT_TRUE(byteArray.empty());
+  }
+
+  TEST_F(GivenMethodCallerOfVoidMethodWithTwoArguments, WhenItIsInvokedThenReceiverObjectGetsCorrectArguments) {
+
+    MultitypeSpy remoteObject;
+    ByteArray methodArgumentsArray;
+    std::string arg1 = serializeStringInto(methodArgumentsArray);
+    int arg2 = serializeIntegerInto(methodArgumentsArray);
+
+    RemoteMethod->invoke(remoteObject, methodArgumentsArray);
+
+    assertRemoteObjectGetsCorrectArguments(remoteObject, arg1, arg2);
+  }
+
+  TEST_F(GivenMethodCallerOfIntegerMethodWithNoArguments, WhenItIsInvokedThenCorrectValueIsReturned) {
+
+    int expectedReturnValue = 3;
+    IntegerStub remoteObject(expectedReturnValue);
+    ByteArray emptyArguments;
+
+    ByteArray resultByteArray = RemoteMethod->invoke(remoteObject, emptyArguments);
+
+    assertByteArrayContains<int>(resultByteArray, expectedReturnValue);
+  }
+
+  TEST_F(GivenMethodCallerOfVoidMethodWithNonConstReferenceArgument, WhenItIsInvokedThenReceiverObjectGetsCorrectArgument) {
+
+    testMethodWithStringReferenceParameter(std::move(RemoteMethod));
+  }
+
+  TEST_F(GivenMethodCallerOfVoidMethodWithConstReferenceArgument, WhenItIsInvokedThenReceiverObjectGetsCorrectArgument) {
+
+    testMethodWithStringReferenceParameter(std::move(RemoteMethod));
+  }
+
+  TEST_F(GivenMethodCallerOfMethodThatReturnsStringReference, WhenItIsInvokedThenReceiverObjectReturnsCorrectValue) {
+
+    testMethodWithStringReferenceReturnType<StringReferenceConfigurableStub>(std::move(RemoteMethod));
+  }
+
+  TEST_F(GivenMethodCallerOfMethodThatReturnsStringConstReference, WhenItIsInvokedThenReceiverObjectReturnsCorrectValue) {
+
+    testMethodWithStringReferenceReturnType<StringConstReferenceConfigurableStub>(std::move(RemoteMethod));
+  }
+
 }
-
-/// Checks whether a Byte Array contains an expected value.
-template <typename T>
-static void assertByteArrayContains(ByteArray &ByteArr, T ExpectedValue)
-{
-  DataStream Stream(ByteArr);
-  T ValueInByteArray;
-  Stream >> ValueInByteArray;
-
-  ASSERT_EQ(ValueInByteArray, ExpectedValue);
-}
-
-/// A parameterized test for a Method Caller that wraps a method with one
-/// string parameter, which is passed by reference. The test checks that the
-/// method receives the correct string.
-static void testMethodWithStringReferenceParameter(
-    std::unique_ptr<IRemoteMethod> RemoteMethod)
-{
-  StringReferenceSpy RemoteObject;
-  ByteArray MethodArgumentsArray;
-  std::string ExpectedString = serializeStringInto(MethodArgumentsArray);
-
-  RemoteMethod->invoke(RemoteObject, MethodArgumentsArray);
-
-  ASSERT_EQ(RemoteObject.getReceivedString(), ExpectedString);
-}
-
-/// A parameterized test for a Method Caller that wraps a method with no
-/// arguments and string reference return type. The test checks that the Method
-/// Caller returns the correct string.
-template <typename RemoteObjType>
-static void testMethodWithStringReferenceReturnType(
-    std::unique_ptr<IRemoteMethod> RemoteMethod)
-{
-  RemoteObjType RemoteObject;
-  std::string ExpectedString = "Test String";
-  RemoteObject.setStringToReturn(ExpectedString);
-  ByteArray EmptyArguments;
-
-  ByteArray ResultByteArray =
-      RemoteMethod->invoke(RemoteObject, EmptyArguments);
-
-  assertByteArrayContains<std::string>(ResultByteArray, ExpectedString);
-}
-
-TEST_F(GivenMethodCallerOfVoidMethodWithNoArguments,
-       WhenItIsInvokedThenReceiverObjectGetsTheMessage)
-{
-  BooleanSpy RemoteObject;
-  ByteArray EmptyArguments;
-
-  RemoteMethod->invoke(RemoteObject, EmptyArguments);
-
-  ASSERT_TRUE(RemoteObject.isCalled());
-}
-
-TEST_F(GivenMethodCallerOfVoidMethodWithNoArguments,
-       WhenItIsInvokedThenItReturnsEmptyByteArray)
-{
-  BooleanSpy RemoteObject;
-  ByteArray EmptyArguments;
-
-  ByteArray ByteArr = RemoteMethod->invoke(RemoteObject, EmptyArguments);
-
-  ASSERT_TRUE(ByteArr.size() == 0);
-}
-
-TEST_F(GivenMethodCallerOfVoidMethodWithTwoArguments,
-       WhenItIsInvokedThenReceiverObjectGetsCorrectArguments)
-{
-  MultitypeSpy RemoteObject;
-  ByteArray MethodArgumentsArray;
-  std::string Arg1 = serializeStringInto(MethodArgumentsArray);
-  int Arg2 = serializeIntegerInto(MethodArgumentsArray);
-
-  RemoteMethod->invoke(RemoteObject, MethodArgumentsArray);
-
-  assertRemoteObjectGetsCorrectArguments(RemoteObject, Arg1, Arg2);
-}
-
-TEST_F(GivenMethodCallerOfIntegerMethodWithNoArguments,
-       WhenItIsInvokedThenCorrectValueIsReturned)
-{
-  int ExpectedReturnValue = 3;
-  IntegerStub RemoteObject(ExpectedReturnValue);
-  ByteArray EmptyArguments;
-
-  ByteArray ResultByteArray =
-      RemoteMethod->invoke(RemoteObject, EmptyArguments);
-
-  assertByteArrayContains<int>(ResultByteArray, ExpectedReturnValue);
-}
-
-TEST_F(GivenMethodCallerOfVoidMethodWithNonConstReferenceArgument,
-       WhenItIsInvokedThenReceiverObjectGetsCorrectArgument)
-{
-  testMethodWithStringReferenceParameter(std::move(RemoteMethod));
-}
-
-TEST_F(GivenMethodCallerOfVoidMethodWithConstReferenceArgument,
-       WhenItIsInvokedThenReceiverObjectGetsCorrectArgument)
-{
-
-  testMethodWithStringReferenceParameter(std::move(RemoteMethod));
-}
-
-TEST_F(GivenMethodCallerOfMethodThatReturnsStringReference,
-       WhenItIsInvokedThenReceiverObjectReturnsCorrectValue)
-{
-  testMethodWithStringReferenceReturnType<StringReferenceConfigurableStub>(
-      std::move(RemoteMethod));
-}
-
-TEST_F(GivenMethodCallerOfMethodThatReturnsStringConstReference,
-       WhenItIsInvokedThenReceiverObjectReturnsCorrectValue)
-{
-  testMethodWithStringReferenceReturnType<StringConstReferenceConfigurableStub>(
-      std::move(RemoteMethod));
-}
-
-} // namespace rmi
