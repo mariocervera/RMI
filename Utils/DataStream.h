@@ -42,13 +42,6 @@ public:
   {
   }
 
-  /// Returns the current byte ordering setting.
-  support::ByteOrder byteOrder() const { return Order; }
-
-  /// Returns the underlying byte array of this stream.
-  ByteArray &array() { return BA; }
-  const ByteArray &array() const { return BA; }
-
   /// Reads len bytes from the stream and stores them into the input buffer.
   /// User must ensure that enough bytes are available for read. Byte ordering
   /// correction is not applied when using this function.

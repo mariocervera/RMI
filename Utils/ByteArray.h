@@ -15,19 +15,6 @@
 namespace elint
 {
 
-static auto logError = [](const std::string &ErrorString) {
-  std::ofstream outfile;
-
-  outfile.open("ByteArray.log", std::ios_base::app);
-  outfile << "[";
-  auto now = std::chrono::system_clock::now();
-  auto itt = std::chrono::system_clock::to_time_t(now);
-  outfile << std::put_time(gmtime(&itt), "%FT%TZ");
-  outfile << "][ByteArray]: " + ErrorString;
-  outfile << std::endl;
-  outfile.close();
-};
-
 /// This class provides an array of bytes. Use it when you need
 /// to store an array of raw bytes coming from a source. It
 /// basically has two modes of operation: using internal storage,
@@ -59,8 +46,6 @@ public:
     if (Capacity == 0)
     {
       Capacity = InitialBufferSize;
-      logError(std::string("Invalid capacity. Using a capacity of ") +
-               std::to_string(InitialBufferSize) + " instead.");
       InitializationError = true;
     }
 
@@ -68,62 +53,6 @@ public:
 
     Size = Other.Size;
     std::memcpy(Storage, Other.data(), sizeof(value_type) * Size);
-  }
-
-  ByteArray &operator=(const ByteArray &Other)
-  {
-    if (InitializationError)
-    {
-      logError("Working with InitializationError");
-      OperationError = true;
-      return const_cast<ByteArray &>(Other);
-    }
-
-    if (SelfStorage == 0)
-    {
-      logError("Cannot assign a non selfstorage bytearray. Returning "
-               "input ByteArray");
-      OperationError = true;
-      return const_cast<ByteArray &>(Other);
-    }
-
-    // Check the array capacity.
-    if (Other.Capacity > Capacity)
-      reserve(Other.Capacity);
-    if (OperationError)
-    {
-      logError("Error on resize");
-      OperationError = true;
-      return const_cast<ByteArray &>(Other);
-    }
-
-    Size = Other.Size;
-    // Perform the copy.
-    std::memcpy(Storage, Other.data(), sizeof(value_type) * Size);
-
-    return *this;
-  }
-
-  /// Constructs a byte array with the specfied storage location
-  /// and fixed capacity. The caller must ensure the storage will
-  /// not be deleted as long the byte array exists.
-  ByteArray(value_type *Storage, unsigned Capacity)
-      : Storage(Storage), Capacity(Capacity), Size(0), SelfStorage(false),
-        InitializationError(false), OperationError(false), Error(0)
-  {
-    if (Storage == nullptr)
-    {
-      logError("Invalid Storage pointer");
-      InitializationError = true;
-      const_cast<bool &>(SelfStorage) = true;
-    }
-
-    if (Capacity == 0)
-    {
-      logError("Invalid capacity");
-      Capacity = InitialBufferSize;
-      InitializationError = true;
-    }
   }
 
   /// Constructs an empty byte array with internal storage and
@@ -134,7 +63,6 @@ public:
   {
     if (InitialCapacity == 0)
     {
-      logError("Invalid capacity");
       Capacity = InitialBufferSize;
       InitializationError = true;
     }
@@ -151,144 +79,6 @@ public:
       ::free(Storage);
       Storage = nullptr;
     }
-  }
-
-  /// Returns a reference to the element at the specified
-  /// position.
-  reference at(unsigned Pos)
-  {
-    if (InitializationError)
-    {
-      logError("Working with InitializationError");
-      OperationError = true;
-      return Storage[0];
-    }
-    if (Pos >= Size)
-    {
-      logError("Invalid position");
-      OperationError = true;
-      Pos = Size - 1;
-    }
-    return Storage[Pos];
-  }
-  const_reference at(unsigned Pos) const
-  {
-    if (InitializationError)
-    {
-      logError("Working with InitializationError");
-      OperationError = true;
-      return Storage[0];
-    }
-    if (Pos >= Size)
-    {
-      logError("Invalid position");
-      OperationError = true;
-      Pos = Size - 1;
-    }
-    return Storage[Pos];
-  }
-
-  reference operator[](unsigned Pos)
-  {
-    if (InitializationError)
-    {
-      logError("Working with InitializationError");
-      OperationError = true;
-      return Storage[0];
-    }
-    if (Pos >= Size)
-    {
-      logError("Invalid position");
-      OperationError = true;
-      Pos = Size - 1;
-    }
-    return Storage[Pos];
-  }
-  const_reference operator[](unsigned Pos) const
-  {
-    if (InitializationError)
-    {
-      logError("Working with InitializationError");
-      OperationError = true;
-      return Storage[0];
-    }
-    if (Pos >= Size)
-    {
-      logError("Invalid position");
-      OperationError = true;
-      Pos = Size - 1;
-    }
-    return Storage[Pos];
-  }
-
-  /// Returns a reference to the first element in the array.
-  /// :NOTE: Calling front on an empty array is undefined.
-  reference front()
-  {
-    if (InitializationError)
-    {
-      logError("Working with InitializationError");
-      OperationError = true;
-      return static_cast<value_type &>(Error);
-    }
-    if (empty())
-    {
-      logError("Array is empty");
-      OperationError = true;
-      return static_cast<value_type &>(Error);
-    }
-    return Storage[0];
-  }
-  const_reference front() const
-  {
-    if (InitializationError)
-    {
-      logError("Working with InitializationError");
-      OperationError = true;
-      return const_cast<value_type &>(Error);
-    }
-    if (empty())
-    {
-      logError("Array is empty");
-      OperationError = true;
-      return const_cast<value_type &>(Error);
-    }
-    return Storage[0];
-  }
-
-  /// Returns a reference to the last element in the array.
-  /// :NOTE: Calling back on an empty array is undefined.
-  reference back()
-  {
-    if (InitializationError)
-    {
-      logError("Working with InitializationError");
-      OperationError = true;
-      return static_cast<value_type &>(Error);
-    }
-    if (empty())
-    {
-      logError("Array is empty");
-      OperationError = true;
-      return static_cast<value_type &>(Error);
-    }
-    return Storage[Size ? Size - 1 : 0];
-  }
-  const_reference back() const
-  {
-    if (InitializationError)
-    {
-      logError("Working with InitializationError");
-      OperationError = true;
-      return const_cast<value_type &>(Error);
-    }
-    if (empty())
-    {
-      logError("Array is empty");
-      OperationError = true;
-      return const_cast<value_type &>(Error);
-    }
-    return Storage[Size ? Size - 1 : 0];
   }
 
   /// Returns a pointer to the underlying array serving as
@@ -312,10 +102,6 @@ public:
   /// allocated space for.
   unsigned capacity() const { return Capacity; }
 
-  /// Returns the number of bytes that are available for reading.
-  /// Same as size().
-  unsigned bytesAvailable() const { return size(); }
-
   /// Increase the capacity of the internal storage to the
   /// specified new value. Calling this function may invalidate
   /// all iterators. :NOTE: Calling this function when using
@@ -324,7 +110,6 @@ public:
   {
     if (InitializationError)
     {
-      logError("Working with InitializationError");
       OperationError = true;
       return;
     }
@@ -339,7 +124,6 @@ public:
 
     if (NewCapacity >= MaximumBufferSize)
     {
-      logError("New capacity is too large");
       OperationError = true;
       return;
     }
@@ -364,7 +148,6 @@ public:
   {
     if (Count == 0)
     {
-      logError("Invalid count");
       OperationError = true;
       return;
     }
@@ -388,8 +171,6 @@ public:
 
     if (Size + NewElemCount * sizeof(value_type) > Capacity)
     {
-      logError("Cannot resize:\tCount:" + std::to_string(Count));
-      logError("Cannot resize:\tNewElemCount:" + std::to_string(NewElemCount));
       OperationError = true;
       return;
     }
@@ -412,7 +193,6 @@ public:
 
     if (Size + sizeof(value_type) > Capacity)
     {
-      logError("Cannot insert a new element");
       OperationError = true;
       return;
     }
@@ -438,7 +218,6 @@ public:
 
     if (Size + sizeof(value_type) * Len > Capacity)
     {
-      logError("Cannot insert a new element");
       OperationError = true;
       return;
     }
@@ -472,14 +251,12 @@ public:
 
     if (Size + sizeof(value_type) * Len > Capacity)
     {
-      logError("Cannot insert a new element");
       OperationError = true;
       return;
     }
 
     if ((Offset + Len) > Data.size())
     {
-      logError("Data out of range");
       OperationError = true;
       return;
     }
@@ -502,40 +279,22 @@ public:
 
     if (Pos < begin())
     {
-      logError("Pos is out of bounds");
       OperationError = true;
       return;
     }
 
     if (Pos >= end())
     {
-      logError("Pos is past the end of the vector");
       OperationError = true;
       return;
     }
 
     if ((Pos + Len - 1) >= end())
     {
-      logError("Not enough bytes available to read");
       return;
     }
 
     std::memcpy(Value, Pos, sizeof(value_type) * Len);
-  }
-
-  /// Function to return if there has been an operation error.
-  /// Returns false if there has been an error, otherwise, true.
-  /// NOTE: This function should be called after calling each one
-  /// of the ByteArray methods to assure that the operation
-  /// performed has succeeded.
-  const bool isOperationValid() const
-  {
-    if (InitializationError)
-      return false;
-
-    bool Status = !OperationError;
-    OperationError = false;
-    return Status;
   }
 
 private:
@@ -557,19 +316,6 @@ inline bool operator!=(const ByteArray &LHS, const ByteArray &RHS)
 {
   return !(LHS == RHS);
 }
-
-/// Static version of the byte array, useful when you know the
-/// required size beforehand to avoid using dynamic memory.
-template <unsigned N> class StaticByteArray : public ByteArray
-{
-  uint8_t Buffer[N];
-
-public:
-  StaticByteArray() : ByteArray(Buffer, N) {}
-
-  StaticByteArray(const StaticByteArray &) = delete;
-  StaticByteArray &operator=(const StaticByteArray &) = delete;
-};
 
 } // namespace elint
 
