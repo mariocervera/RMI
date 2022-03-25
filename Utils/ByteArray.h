@@ -6,14 +6,8 @@
 namespace elint
 {
 
-/// This class provides an array of bytes. Use it when you need
-/// to store an array of raw bytes coming from a source. It
-/// basically has two modes of operation: using internal storage,
-/// the array is dynamic and grows as new elements are inserted,
-/// similar to std::vector. The second mode uses external storage
-/// that has to be provided by the user having its size fixed and
-/// not being growable, so it must be assured that enough space
-/// is allocated.
+/// This class provides a dynamic array of bytes. It grows as new
+/// elements are inserted, similar to std::vector.
 class ByteArray
 {
   enum
@@ -23,21 +17,16 @@ class ByteArray
   };
 
 public:
-  /// Common typedefs.
   using value_type = uint8_t;
-  using reference = value_type &;
-  using const_reference = const value_type &;
   using iterator = value_type *;
   using const_iterator = const value_type *;
 
   ByteArray(const ByteArray &Other)
-      : Capacity(Other.Capacity), Size(Other.Size), SelfStorage(true),
-        InitializationError(false), OperationError(false), Error(0)
+      : Capacity(Other.Capacity), Size(Other.Size)
   {
     if (Capacity == 0)
     {
       Capacity = InitialBufferSize;
-      InitializationError = true;
     }
 
     Storage = reinterpret_cast<uint8_t *>(::malloc(Capacity));
@@ -46,34 +35,25 @@ public:
     std::memcpy(Storage, Other.data(), sizeof(value_type) * Size);
   }
 
-  /// Constructs an empty byte array with internal storage and
-  /// dynamic capacity.
   explicit ByteArray(unsigned InitialCapacity = InitialBufferSize)
-      : Capacity(InitialCapacity), Size(0), SelfStorage(true),
-        InitializationError(false), OperationError(false), Error(0)
+      : Capacity(InitialCapacity), Size(0)
   {
     if (InitialCapacity == 0)
-    {
       Capacity = InitialBufferSize;
-      InitializationError = true;
-    }
 
     Storage = reinterpret_cast<uint8_t *>(::malloc(Capacity));
   }
 
-  /// Destroys the byte array and its internal storage if
-  /// applicable.
   ~ByteArray()
   {
-    if (SelfStorage && Storage != nullptr)
+    if (Storage != nullptr)
     {
       ::free(Storage);
       Storage = nullptr;
     }
   }
 
-  /// Returns a pointer to the underlying array serving as
-  /// element storage.
+  /// Returns a pointer to the underlying array serving as element storage.
   value_type *data() { return Storage; }
   const value_type *data() const { return Storage; }
 
@@ -99,31 +79,9 @@ public:
   /// external storage does nothing.
   void reserve(unsigned NewCapacity)
   {
-    if (InitializationError)
-    {
-      OperationError = true;
-      return;
-    }
-
-    // Do nothing if NewCapacity is zero.
-    if (!NewCapacity)
+    if (!NewCapacity || NewCapacity >= MaximumBufferSize || NewCapacity <= Capacity)
       return;
 
-    // Do nothing if we do not own the storage.
-    if (!SelfStorage)
-      return;
-
-    if (NewCapacity >= MaximumBufferSize)
-    {
-      OperationError = true;
-      return;
-    }
-
-    // Do nothing when we already have enough capacity.
-    if (NewCapacity <= Capacity)
-      return;
-
-    // Resize the storage.
     Capacity = NewCapacity;
     Storage = reinterpret_cast<uint8_t *>(::realloc(Storage, Capacity));
   }
@@ -137,14 +95,7 @@ public:
   /// Resizes the array to contain Count elements.
   void resize(unsigned Count)
   {
-    if (Count == 0)
-    {
-      OperationError = true;
-      return;
-    }
-
-    // Easy case: we already match the required size.
-    if (Count == Size)
+    if (Count == 0 || Count == Size)
       return;
 
     // Current size is greater than Count: reduce the array size
@@ -161,18 +112,11 @@ public:
     prealloc(NewElemCount);
 
     if (Size + NewElemCount * sizeof(value_type) > Capacity)
-    {
-      OperationError = true;
       return;
-    }
 
     std::memset(Storage + Size, 0, NewElemCount * sizeof(value_type));
     Size = Count;
   }
-
-  /// Removes all elements from the array. Calling this function
-  /// invalidates any references and interators.
-  void clear() { Size = 0; }
 
   /// Appends Len Bytes from Value to the end of the container.
   /// When the new size is greater than capacity and internal
@@ -182,61 +126,18 @@ public:
   /// length will do nothing.
   void push_back(const value_type *Value, unsigned Len)
   {
-    if (!Value)
-      return;
-
-    if (!Len)
+    if (!Value || !Len)
       return;
 
     prealloc(sizeof(value_type) * Len);
 
     if (Size + sizeof(value_type) * Len > Capacity)
-    {
-      OperationError = true;
       return;
-    }
 
     const volatile value_type *A = Value;
 
-    // :TODO: habra que investigar esto!!
     for (unsigned i = 0; i != Len * sizeof(value_type); ++i)
       Storage[Size + i] = A[i];
-
-    // std::memcpy(Storage + Size, Value, sizeof(value_type) *
-    // Len);
-    Size += sizeof(value_type) * Len;
-  }
-
-  /// Appends Len Bytes from Offset position of the given Data to
-  /// the end of the container. When the new size is greater than
-  /// capacity and internal storage is used then all iterators
-  /// and references are invalidated otherwise causes undefined
-  /// behaviour. NOTE: Calling this function with no data to push
-  /// or with no length will do nothing.
-  void push_back(const ByteArray &Data, unsigned Len, unsigned Offset = 0u)
-  {
-    if (Data.empty())
-      return;
-
-    if (!Len)
-      return;
-
-    prealloc(sizeof(value_type) * Len);
-
-    if (Size + sizeof(value_type) * Len > Capacity)
-    {
-      OperationError = true;
-      return;
-    }
-
-    if ((Offset + Len) > Data.size())
-    {
-      OperationError = true;
-      return;
-    }
-
-    std::memcpy(Storage + Size, Data.begin() + Offset,
-                sizeof(value_type) * Len);
 
     Size += sizeof(value_type) * Len;
   }
@@ -246,27 +147,10 @@ public:
   /// than available is undefined.
   void read(iterator Pos, value_type *Value, unsigned Len) const
   {
-    // Initialize Value to avoid Warning.
     Value[0] = 0;
-    if (Len == 0)
-      return;
 
-    if (Pos < begin())
-    {
-      OperationError = true;
+    if (Len == 0 || Pos < begin() || Pos >= end() || (Pos + Len - 1) >= end())
       return;
-    }
-
-    if (Pos >= end())
-    {
-      OperationError = true;
-      return;
-    }
-
-    if ((Pos + Len - 1) >= end())
-    {
-      return;
-    }
 
     std::memcpy(Value, Pos, sizeof(value_type) * Len);
   }
@@ -275,10 +159,7 @@ private:
   value_type *Storage;
   unsigned Capacity;
   unsigned Size;
-  const bool SelfStorage;
-  mutable bool InitializationError;
-  mutable bool OperationError;
-  value_type Error;
+  
 }; // namespace elint
 
 inline bool operator==(const ByteArray &LHS, const ByteArray &RHS)
