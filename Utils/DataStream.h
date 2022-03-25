@@ -1,10 +1,8 @@
 #ifndef __INCLUDE_DATASTREAM_H__
 #define __INCLUDE_DATASTREAM_H__
 
-#include "ArgumentPack.h"
 #include "ByteArray.h"
 #include "Endian.h"
-#include "MathExtras.h"
 #include <string>
 #include <vector>
 
