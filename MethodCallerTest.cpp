@@ -21,7 +21,7 @@ assertRemoteObjectGetsCorrectArguments(MultitypeSpy &RemoteObject,
 template <typename T>
 static void assertByteArrayContains(ByteArray &ByteArr, T ExpectedValue)
 {
-  DataStream Stream(ByteArr, support::Order_BigEndian);
+  DataStream Stream(ByteArr);
   T ValueInByteArray;
   Stream >> ValueInByteArray;
 

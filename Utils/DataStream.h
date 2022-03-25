@@ -2,13 +2,10 @@
 #define __INCLUDE_DATASTREAM_H__
 
 #include "ByteArray.h"
-#include "Endian.h"
 #include <string>
 #include <vector>
 
-#define le32toh(x) (x)
 #define be32toh(x) (x)
-#define htole32(x) (x)
 #define htobe32(x) (x)
 
 namespace elint
@@ -20,12 +17,11 @@ namespace elint
 class DataStream
 {
   ByteArray &BA;
-  const support::ByteOrder Order;
   unsigned ReadIter;
 
 public:
-  DataStream(ByteArray &BA, support::ByteOrder Order)
-      : BA(BA), Order(Order), ReadIter(0)
+  explicit DataStream(ByteArray &BA)
+      : BA(BA), ReadIter(0)
   {
   }
 
@@ -54,11 +50,9 @@ public:
   DataStream &operator>>(int32_t &i)
   {
     readData(reinterpret_cast<uint8_t *>(&i), sizeof(i));
-    if (Order == support::Order_LittleEndian)
-      i = le32toh(i);
-    else if (Order == support::Order_BigEndian)
-      i = be32toh(i);
-    return *this;
+    i = be32toh(i);
+
+  	return *this;
   }
 
   DataStream &operator>>(std::string &Value)
@@ -83,10 +77,7 @@ public:
 
   DataStream &operator<<(int32_t i)
   {
-    if (Order == support::Order_LittleEndian)
-      i = htole32(i);
-    else if (Order == support::Order_BigEndian)
-      i = htobe32(i);
+    i = htobe32(i);
 
     writeData(reinterpret_cast<const uint8_t *>(&i), sizeof(i));
     return *this;

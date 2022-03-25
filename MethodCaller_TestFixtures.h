@@ -12,7 +12,7 @@ namespace elint
 // Serializes a value of type T into a ByteArray.
 template <typename T> void serializeInto(ByteArray &Arr, T Value)
 {
-  DataStream Stream(Arr, support::Order_BigEndian);
+  DataStream Stream(Arr);
   Stream << Value;
 }
 

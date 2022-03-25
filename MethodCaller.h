@@ -46,7 +46,7 @@ private:
   /// wrapped by this Method Caller.
   std::tuple<std::decay_t<Args>...> deserializeByteArray(ByteArray &Array)
   {
-    DataStream Stream(Array, support::Order_BigEndian);
+    DataStream Stream(Array);
     std::tuple<std::decay_t<Args>...> Tuple;
 
     unrollDeserializationOperations(Stream, Tuple,
@@ -116,7 +116,7 @@ private:
   template <typename E> static ByteArray serialize(E &Element)
   {
     ByteArray BA;
-    DataStream Stream(BA, support::Order_BigEndian);
+    DataStream Stream(BA);
     Stream << Element;
 
     return BA;
