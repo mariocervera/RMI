@@ -183,23 +183,6 @@ public:
   /// invalidates any references and interators.
   void clear() { Size = 0; }
 
-  /// Appends the given value to the end of the container. When
-  /// the new size is greater than capacity and internal storage
-  /// is used then all iterators and references are invalidated
-  /// otherwise causes undefined behaviour.
-  void push_back(const value_type &Value)
-  {
-    prealloc(sizeof(value_type));
-
-    if (Size + sizeof(value_type) > Capacity)
-    {
-      OperationError = true;
-      return;
-    }
-    std::memcpy(Storage + Size, &Value, sizeof(value_type));
-    Size += sizeof(value_type);
-  }
-
   /// Appends Len Bytes from Value to the end of the container.
   /// When the new size is greater than capacity and internal
   /// storage is used then all iterators and references are
