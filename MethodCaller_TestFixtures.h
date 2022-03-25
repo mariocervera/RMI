@@ -6,104 +6,89 @@
 #include "MethodCaller_TestDoubles.h"
 #include <gtest/gtest.h>
 
-namespace rmi
-{
+namespace rmi {
 
-// Serializes a value of type T into a ByteArray.
-template <typename T> void serializeInto(ByteArray &Arr, T Value)
-{
-  DataStream Stream(Arr);
-  Stream << Value;
-}
-
-// Returns a string that is serialized into the input ByteArray.
-std::string serializeStringInto(ByteArray &Arr)
-{
-  std::string TestString = "TestString";
-  serializeInto<std::string>(Arr, TestString);
-
-  return TestString;
-}
-
-// Returns an integer value that is serialized into the input ByteArray.
-int serializeIntegerInto(ByteArray &Arr)
-{
-  int TestValue = 2;
-  serializeInto<int>(Arr, TestValue);
-
-  return TestValue;
-}
-
-template <typename T, typename> class GivenAMethodCaller;
-
-/// A fixture superclass for testing the Method Caller.
-template <typename T, typename R, typename... Args>
-class GivenAMethodCaller<T, R(Args...)> : public ::testing::Test
-{
-protected:
-  using MethodCallerType = MethodCaller<T, R(Args...)>;
-
-  void SetUp() override
-  {
-    R (T::*M)(Args...) = &T::call;
-    RemoteMethod = std::make_unique<MethodCallerType>(M);
+  template <typename T> void serializeInto(ByteArray &byteArray, T value) {
+    DataStream stream(byteArray);
+    stream << value;
   }
 
-protected:
-  std::unique_ptr<IRemoteMethod> RemoteMethod;
-};
+  std::string serializeStringInto(ByteArray &byteArray) {
+    std::string testString = "TestString";
+    serializeInto<std::string>(byteArray, testString);
 
-/// A fixture for testing a Method Caller that wraps a method with void
-/// return type and no arguments.
-class GivenMethodCallerOfVoidMethodWithNoArguments
-    : public GivenAMethodCaller<BooleanSpy, void()>
-{
-};
+    return testString;
+  }
 
-/// A fixture for testing a Method Caller that wraps a method with void return
-/// type and two arguments (of type string and integer).
-class GivenMethodCallerOfVoidMethodWithTwoArguments
-    : public GivenAMethodCaller<MultitypeSpy, void(std::string, int)>
-{
-};
+  int serializeIntegerInto(ByteArray & byteArray) {
+    int testValue = 2;
+    serializeInto<int>(byteArray, testValue);
 
-/// A fixture for testing a Method Caller that wraps a method with integer
-/// return type and no arguments.
-class GivenMethodCallerOfIntegerMethodWithNoArguments
-    : public GivenAMethodCaller<IntegerStub, int()>
-{
-};
+    return testValue;
+  }
 
-/// A fixture for testing a Method Caller that wraps a method with void return
-/// type and one argument (of type string reference).
-class GivenMethodCallerOfVoidMethodWithNonConstReferenceArgument
-    : public GivenAMethodCaller<StringReferenceSpy, void(std::string &)>
-{
-};
 
-/// A fixture for testing a Method Caller that wraps a method with void return
-/// type and one argument (of type string reference).
-class GivenMethodCallerOfVoidMethodWithConstReferenceArgument
-    : public GivenAMethodCaller<StringReferenceSpy, void(const std::string &)>
-{
-};
+  // Fixture superclass for testing the Method Caller.
 
-/// A fixture for testing a Method Caller that wraps a method that returns a
-/// string reference.
-class GivenMethodCallerOfMethodThatReturnsStringReference
-    : public GivenAMethodCaller<StringReferenceConfigurableStub,
-                                std::string &()>
-{
-};
+  template <typename T, typename> class GivenAMethodCaller;
 
-/// A fixture for testing a Method Caller that wraps a method that returns a
-/// string const reference.
-class GivenMethodCallerOfMethodThatReturnsStringConstReference
-    : public GivenAMethodCaller<StringConstReferenceConfigurableStub,
-                                const std::string &()>
-{
-};
+  template <typename T, typename R, typename... Args>
+  class GivenAMethodCaller<T, R(Args...)> : public ::testing::Test {
+    
+  protected:
+    using MethodCallerType = MethodCaller<T, R(Args...)>;
 
-} // namespace rmi
+    void SetUp() override {
+      R(T:: *M)(Args...) = &T::call;
+      remoteMethod = std::make_unique<MethodCallerType>(M);
+    }
+
+  protected:
+    std::unique_ptr<IRemoteMethod> remoteMethod;
+  };
+
+  
+  // A fixture for testing a Method Caller that wraps a method with void return type and no arguments.
+
+  class GivenMethodCallerOfVoidMethodWithNoArguments
+    : public GivenAMethodCaller<BooleanSpy, void()> { };
+
+
+  // A fixture for testing a Method Caller that wraps a method with void return type and two arguments (of type string and integer).
+
+  class GivenMethodCallerOfVoidMethodWithTwoArguments
+    : public GivenAMethodCaller<MultitypeSpy, void(std::string, int)> { };
+
+
+  // A fixture for testing a Method Caller that wraps a method with integer return type and no arguments.
+
+  class GivenMethodCallerOfIntegerMethodWithNoArguments
+    : public GivenAMethodCaller<IntegerStub, int()> { };
+
+  
+  // A fixture for testing a Method Caller that wraps a method with void return type and one argument (of type string reference).
+
+  class GivenMethodCallerOfVoidMethodWithNonConstReferenceArgument
+    : public GivenAMethodCaller<StringReferenceSpy, void(std::string &)> { };
+
+
+  // A fixture for testing a Method Caller that wraps a method with void return type and one argument (of type string const reference).
+
+  class GivenMethodCallerOfVoidMethodWithConstReferenceArgument
+    : public GivenAMethodCaller<StringReferenceSpy, void(const std::string &)> { };
+
+
+  // A fixture for testing a Method Caller that wraps a method that returns a string reference.
+
+  class GivenMethodCallerOfMethodThatReturnsStringReference
+    : public GivenAMethodCaller<StringReferenceConfigurableStub, std::string &()> { };
+
+
+  // A fixture for testing a Method Caller that wraps a method that returns a string const reference.
+
+  class GivenMethodCallerOfMethodThatReturnsStringConstReference
+    : public GivenAMethodCaller<StringConstReferenceConfigurableStub, const std::string &()> { };
+
+}
 
 #endif // __INCLUDE_METHODCALLER_TESTFIXTURES_H__

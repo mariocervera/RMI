@@ -10,7 +10,6 @@ namespace rmi {
   static void assertRemoteObjectGetsCorrectArguments(MultitypeSpy &remoteObject,
                                                      std::string &serializedString,
                                                      int serializedInteger) {
-    
     ASSERT_EQ(remoteObject.getReceivedString(), serializedString);
     ASSERT_EQ(remoteObject.getReceivedInteger(), serializedInteger);
   }
@@ -60,7 +59,7 @@ namespace rmi {
     BooleanSpy remoteObject;
     ByteArray emptyArguments;
 
-    RemoteMethod->invoke(remoteObject, emptyArguments);
+    remoteMethod->invoke(remoteObject, emptyArguments);
 
     ASSERT_TRUE(remoteObject.isCalled());
   }
@@ -70,7 +69,7 @@ namespace rmi {
     BooleanSpy remoteObject;
     ByteArray emptyArguments;
 
-    const ByteArray byteArray = RemoteMethod->invoke(remoteObject, emptyArguments);
+    const ByteArray byteArray = remoteMethod->invoke(remoteObject, emptyArguments);
 
     ASSERT_TRUE(byteArray.empty());
   }
@@ -82,7 +81,7 @@ namespace rmi {
     std::string arg1 = serializeStringInto(methodArgumentsArray);
     int arg2 = serializeIntegerInto(methodArgumentsArray);
 
-    RemoteMethod->invoke(remoteObject, methodArgumentsArray);
+    remoteMethod->invoke(remoteObject, methodArgumentsArray);
 
     assertRemoteObjectGetsCorrectArguments(remoteObject, arg1, arg2);
   }
@@ -93,29 +92,29 @@ namespace rmi {
     IntegerStub remoteObject(expectedReturnValue);
     ByteArray emptyArguments;
 
-    ByteArray resultByteArray = RemoteMethod->invoke(remoteObject, emptyArguments);
+    ByteArray resultByteArray = remoteMethod->invoke(remoteObject, emptyArguments);
 
     assertByteArrayContains<int>(resultByteArray, expectedReturnValue);
   }
 
   TEST_F(GivenMethodCallerOfVoidMethodWithNonConstReferenceArgument, WhenItIsInvokedThenReceiverObjectGetsCorrectArgument) {
 
-    testMethodWithStringReferenceParameter(std::move(RemoteMethod));
+    testMethodWithStringReferenceParameter(std::move(remoteMethod));
   }
 
   TEST_F(GivenMethodCallerOfVoidMethodWithConstReferenceArgument, WhenItIsInvokedThenReceiverObjectGetsCorrectArgument) {
 
-    testMethodWithStringReferenceParameter(std::move(RemoteMethod));
+    testMethodWithStringReferenceParameter(std::move(remoteMethod));
   }
 
   TEST_F(GivenMethodCallerOfMethodThatReturnsStringReference, WhenItIsInvokedThenReceiverObjectReturnsCorrectValue) {
 
-    testMethodWithStringReferenceReturnType<StringReferenceConfigurableStub>(std::move(RemoteMethod));
+    testMethodWithStringReferenceReturnType<StringReferenceConfigurableStub>(std::move(remoteMethod));
   }
 
   TEST_F(GivenMethodCallerOfMethodThatReturnsStringConstReference, WhenItIsInvokedThenReceiverObjectReturnsCorrectValue) {
 
-    testMethodWithStringReferenceReturnType<StringConstReferenceConfigurableStub>(std::move(RemoteMethod));
+    testMethodWithStringReferenceReturnType<StringConstReferenceConfigurableStub>(std::move(remoteMethod));
   }
 
 }
