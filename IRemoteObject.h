@@ -3,7 +3,7 @@
 
 #include "Utils/ByteArray.h"
 
-namespace elint
+namespace rmi
 {
 
 /// An abstract representation of a Method that can be invoked on a Remote
@@ -16,6 +16,6 @@ public:
   virtual std::unique_ptr<IRemoteObject> createNewInstance(ByteArray& Arguments) const = 0;
 };
 
-} // namespace elint
+} // namespace rmi
 
 #endif // __INCLUDE_IREMOTEOBJECT_H__

@@ -3,7 +3,7 @@
 
 using namespace testing;
 
-namespace elint
+namespace rmi
 {
 
 /// Asserts the remote object receives the correct arguments (of type string and
@@ -136,4 +136,4 @@ TEST_F(GivenMethodCallerOfMethodThatReturnsStringConstReference,
       std::move(RemoteMethod));
 }
 
-} // namespace elint
+} // namespace rmi

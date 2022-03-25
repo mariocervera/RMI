@@ -4,7 +4,7 @@
 #include "IRemoteMethod.h"
 #include "Utils/DataStream.h"
 
-namespace elint
+namespace rmi
 {
 
 template <typename T, typename> class MethodCaller;
@@ -126,6 +126,6 @@ private:
   MethodPointer WrappedMethod;
 };
 
-} // namespace elint
+} // namespace rmi
 
 #endif // __INCLUDE_METHODCALLER_H__

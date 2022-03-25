@@ -4,7 +4,7 @@
 #include "IRemoteObject.h"
 #include <string>
 
-namespace elint
+namespace rmi
 {
 
 /// A common superclass for all Remote Object Test Doubles. It avoids code
@@ -112,6 +112,6 @@ private:
   std::string StringValue = "";
 };
 
-} // namespace elint
+} // namespace rmi
 
 #endif // __INCLUDE_METHODCALLER_TESTDOUBLES_H__

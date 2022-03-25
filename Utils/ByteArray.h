@@ -3,7 +3,7 @@
 
 #include <fstream>
 
-namespace elint
+namespace rmi
 {
 
 /// This class provides a dynamic array of bytes. It grows as new
@@ -160,7 +160,7 @@ private:
   unsigned Capacity;
   unsigned Size;
   
-}; // namespace elint
+}; // namespace rmi
 
 inline bool operator==(const ByteArray &LHS, const ByteArray &RHS)
 {
@@ -172,6 +172,6 @@ inline bool operator!=(const ByteArray &LHS, const ByteArray &RHS)
   return !(LHS == RHS);
 }
 
-} // namespace elint
+} // namespace rmi
 
 #endif // __INCLUDE_BYTEARRAY_H__

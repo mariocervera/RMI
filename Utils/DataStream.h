@@ -7,7 +7,7 @@
 #define be32toh(x) (x)
 #define htobe32(x) (x)
 
-namespace elint
+namespace rmi
 {
 
 /// This class provides a serialization and deserialization interface that wraps
@@ -88,6 +88,6 @@ public:
   }
 };
 
-} // namespace elint
+} // namespace rmi
 
 #endif // __INCLUDE_DATASTREAM_H__

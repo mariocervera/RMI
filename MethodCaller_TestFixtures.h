@@ -6,7 +6,7 @@
 #include "MethodCaller_TestDoubles.h"
 #include <gtest/gtest.h>
 
-namespace elint
+namespace rmi
 {
 
 // Serializes a value of type T into a ByteArray.
@@ -104,6 +104,6 @@ class GivenMethodCallerOfMethodThatReturnsStringConstReference
 {
 };
 
-} // namespace elint
+} // namespace rmi
 
 #endif // __INCLUDE_METHODCALLER_TESTFIXTURES_H__

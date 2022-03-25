@@ -3,7 +3,7 @@
 
 #include "Utils/ByteArray.h"
 
-namespace elint
+namespace rmi
 {
 
 class IRemoteObject;
@@ -20,6 +20,6 @@ public:
   virtual ByteArray invoke(IRemoteObject &Obj, ByteArray &Arguments) = 0;
 };
 
-} // namespace elint
+} // namespace rmi
 
 #endif // __INCLUDE_IREMOTEMETHOD_H__
