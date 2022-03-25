@@ -2,8 +2,7 @@
 #define __INCLUDE_DATASTREAM_H__
 
 #include "ByteArray.h"
-#include <string>
-#include <vector>
+
 
 #define be32toh(x) (x)
 #define htobe32(x) (x)
@@ -41,7 +40,6 @@ public:
   ///
   /// Read operators.
   ///
-  
   DataStream &operator>>(uint32_t &i)
   {
     return this->operator>>(reinterpret_cast<int32_t &>(i));
@@ -60,7 +58,6 @@ public:
     uint32_t Length;
     this->operator>>(Length);
 
-    // If length is zero, stop reading bytes.
     if (!Length)
       return *this;
 
@@ -74,20 +71,20 @@ public:
   ///
   /// Write operators.
   ///
-
   DataStream &operator<<(int32_t i)
   {
     i = htobe32(i);
-
     writeData(reinterpret_cast<const uint8_t *>(&i), sizeof(i));
-    return *this;
+
+  	return *this;
   }
 
   DataStream &operator<<(const std::string &Value)
   {
     this->operator<<(int32_t(Value.size()));
     writeData(reinterpret_cast<const uint8_t *>(Value.data()), Value.size());
-    return *this;
+
+  	return *this;
   }
 };
 

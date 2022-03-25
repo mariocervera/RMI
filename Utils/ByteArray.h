@@ -1,16 +1,7 @@
 #ifndef __INCLUDE_BYTEARRAY_H__
 #define __INCLUDE_BYTEARRAY_H__
 
-#include <algorithm>
-#include <cassert>
-#include <chrono>
-#include <cstdint>
-#include <cstdlib>
-#include <cstring>
-#include <string>
 #include <fstream>
-#include <iomanip>
-#include <stdio.h>
 
 namespace elint
 {
