@@ -10,57 +10,57 @@ namespace rmi {
 
   // This class provides a serialization and deserialization interface that wraps a byte array.
   class DataStream {
-  	public:
-  	  explicit DataStream(ByteArray & byteArray) : byteArray(byteArray), readIter(0) { }
+    public:
+      explicit DataStream(ByteArray & byteArray) : byteArray(byteArray), readIter(0) { }
 
-  	  void readData(uint8_t *data, unsigned len) {
-  	  	byteArray.read(byteArray.begin() + readIter, data, len);
-  	  	readIter += len;
+      void readData(uint8_t *data, unsigned len) {
+        byteArray.read(byteArray.begin() + readIter, data, len);
+        readIter += len;
+      }
+
+      void writeData(const uint8_t *data, unsigned len) { byteArray.push_back(data, len); }
+
+      DataStream &operator>>(uint32_t &i) {
+        return this->operator>>(reinterpret_cast<int32_t &>(i));
   	  }
 
-  	  void writeData(const uint8_t *data, unsigned len) { byteArray.push_back(data, len); }
+      DataStream &operator>>(int32_t &i) {
+        readData(reinterpret_cast<uint8_t *>(&i), sizeof(i));
+        i = be32toh(i);
 
-  	  DataStream &operator>>(uint32_t &i) {
-  	  	return this->operator>>(reinterpret_cast<int32_t &>(i));
-  	  }
+        return *this;
+      }
 
-  	  DataStream &operator>>(int32_t &i) {
-  	  	readData(reinterpret_cast<uint8_t *>(&i), sizeof(i));
-  	  	i = be32toh(i);
+      DataStream &operator>>(std::string &value) {
+        uint32_t length;
+        this->operator>>(length);
 
-  	  	return *this;
-  	  }
-
-  	  DataStream &operator>>(std::string &value) {
-  	  	uint32_t length;
-  	  	this->operator>>(length);
-
-  	  	if (!length)
+        if (!length)
           return *this;
 
-  	  	value.resize(length);
-  	  	readData(reinterpret_cast<uint8_t *>(&*value.begin()), sizeof(uint8_t) * length);
+        value.resize(length);
+        readData(reinterpret_cast<uint8_t *>(&*value.begin()), sizeof(uint8_t) * length);
 
-  	  	return *this;
-  	  }
+        return *this;
+      }
 
-  	  DataStream &operator<<(int32_t i) {
-  	  	i = htobe32(i);
-  	  	writeData(reinterpret_cast<const uint8_t *>(&i), sizeof(i));
+      DataStream &operator<<(int32_t i) {
+        i = htobe32(i);
+        writeData(reinterpret_cast<const uint8_t *>(&i), sizeof(i));
 
-  	  	return *this;
-  	  }
+        return *this;
+      }
 
-  	  DataStream &operator<<(const std::string &value) {
-  	  	this->operator<<(int32_t(value.size()));
-  	  	writeData(reinterpret_cast<const uint8_t *>(value.data()), value.size());
+      DataStream &operator<<(const std::string &value) {
+      	this->operator<<(int32_t(value.size()));
+      	writeData(reinterpret_cast<const uint8_t *>(value.data()), value.size());
 
-  	  	return *this;
-  	  }
+      	return *this;
+      }
 
     private:
-  	  ByteArray& byteArray;
-  	  unsigned readIter;
+      ByteArray& byteArray;
+      unsigned readIter;
   };
 
 }
