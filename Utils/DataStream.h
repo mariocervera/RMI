@@ -3,91 +3,66 @@
 
 #include "ByteArray.h"
 
-
 #define be32toh(x) (x)
 #define htobe32(x) (x)
 
-namespace rmi
-{
+namespace rmi {
 
-/// This class provides a serialization and deserialization interface that wraps
-/// a byte array. User can configure the the internal byte ordering
-/// representation.
-class DataStream
-{
-  ByteArray &BA;
-  unsigned ReadIter;
+  // This class provides a serialization and deserialization interface that wraps a byte array.
+  class DataStream {
+  	public:
+  	  explicit DataStream(ByteArray & byteArray) : byteArray(byteArray), readIter(0) { }
 
-public:
-  explicit DataStream(ByteArray &BA)
-      : BA(BA), ReadIter(0)
-  {
-  }
+  	  void readData(uint8_t *data, unsigned len) {
+  	  	byteArray.read(byteArray.begin() + readIter, data, len);
+  	  	readIter += len;
+  	  }
 
-  /// Reads len bytes from the stream and stores them into the input buffer.
-  /// User must ensure that enough bytes are available for read. Byte ordering
-  /// correction is not applied when using this function.
-  void readData(uint8_t *Data, unsigned Len)
-  {
-    BA.read(BA.begin() + ReadIter, Data, Len);
-    ReadIter += Len;
-  }
+  	  void writeData(const uint8_t *data, unsigned len) { byteArray.push_back(data, len); }
 
-  /// Writes len bytes into the stream from the input buffer. Byte ordering
-  /// correction is not applied when using this function.
-  void writeData(const uint8_t *Data, unsigned Len) { BA.push_back(Data, Len); }
+  	  DataStream &operator>>(uint32_t &i) {
+  	  	return this->operator>>(reinterpret_cast<int32_t &>(i));
+  	  }
 
-  ///
-  /// Read operators.
-  ///
-  DataStream &operator>>(uint32_t &i)
-  {
-    return this->operator>>(reinterpret_cast<int32_t &>(i));
-  }
+  	  DataStream &operator>>(int32_t &i) {
+  	  	readData(reinterpret_cast<uint8_t *>(&i), sizeof(i));
+  	  	i = be32toh(i);
 
-  DataStream &operator>>(int32_t &i)
-  {
-    readData(reinterpret_cast<uint8_t *>(&i), sizeof(i));
-    i = be32toh(i);
+  	  	return *this;
+  	  }
 
-  	return *this;
-  }
+  	  DataStream &operator>>(std::string &value) {
+  	  	uint32_t length;
+  	  	this->operator>>(length);
 
-  DataStream &operator>>(std::string &Value)
-  {
-    uint32_t Length;
-    this->operator>>(Length);
+  	  	if (!length)
+          return *this;
 
-    if (!Length)
-      return *this;
+  	  	value.resize(length);
+  	  	readData(reinterpret_cast<uint8_t *>(&*value.begin()), sizeof(uint8_t) * length);
 
-    Value.resize(Length);
-    readData(reinterpret_cast<uint8_t *>(&*Value.begin()),
-             sizeof(uint8_t) * Length);
+  	  	return *this;
+  	  }
 
-    return *this;
-  }
+  	  DataStream &operator<<(int32_t i) {
+  	  	i = htobe32(i);
+  	  	writeData(reinterpret_cast<const uint8_t *>(&i), sizeof(i));
 
-  ///
-  /// Write operators.
-  ///
-  DataStream &operator<<(int32_t i)
-  {
-    i = htobe32(i);
-    writeData(reinterpret_cast<const uint8_t *>(&i), sizeof(i));
+  	  	return *this;
+  	  }
 
-  	return *this;
-  }
+  	  DataStream &operator<<(const std::string &value) {
+  	  	this->operator<<(int32_t(value.size()));
+  	  	writeData(reinterpret_cast<const uint8_t *>(value.data()), value.size());
 
-  DataStream &operator<<(const std::string &Value)
-  {
-    this->operator<<(int32_t(Value.size()));
-    writeData(reinterpret_cast<const uint8_t *>(Value.data()), Value.size());
+  	  	return *this;
+  	  }
 
-  	return *this;
-  }
-};
+    private:
+  	  ByteArray& byteArray;
+  	  unsigned readIter;
+  };
 
-} // namespace rmi
+}
 
 #endif // __INCLUDE_DATASTREAM_H__

@@ -12,87 +12,87 @@ namespace rmi {
       maximumBufferSize = 4u * 1024u * 1024u
     };
 
-  public:
-    using value_type = uint8_t;
-    using iterator = value_type*;
-    using const_iterator = const value_type*;
+    public:
+      using value_type = uint8_t;
+      using iterator = value_type*;
+      using const_iterator = const value_type*;
 
-    ByteArray(const ByteArray& other) : capacity(other.capacity), size(other.size) {
+      ByteArray(const ByteArray& other) : capacity(other.capacity), size(other.size) {
 
-      if (capacity == 0)
-        capacity = initialBufferSize;
+        if (capacity == 0)
+          capacity = initialBufferSize;
 
-      storage = reinterpret_cast<uint8_t*>(::malloc(capacity));
+        storage = reinterpret_cast<uint8_t*>(::malloc(capacity));
 
-      size = other.size;
-      std::memcpy(storage, other.data(), sizeof(value_type) * size);
-    }
-
-    explicit ByteArray(unsigned initialCapacity = initialBufferSize) : capacity(initialCapacity), size(0) {
-
-      if (initialCapacity == 0)
-        capacity = initialBufferSize;
-
-      storage = reinterpret_cast<uint8_t*>(::malloc(capacity));
-    }
-
-    ~ByteArray() {
-      if (storage != nullptr) {
-        ::free(storage);
-        storage = nullptr;
+        size = other.size;
+        std::memcpy(storage, other.data(), sizeof(value_type) * size);
       }
-    }
 
-    value_type* data() { return storage; }
-    const value_type* data() const { return storage; }
+      explicit ByteArray(unsigned initialCapacity = initialBufferSize) : capacity(initialCapacity), size(0) {
 
-    iterator begin() { return iterator(storage); }
-    const_iterator begin() const { return const_iterator(storage); }
-    iterator end() { return iterator(storage + size); }
-    const_iterator end() const { return const_iterator(storage + size); }
+        if (initialCapacity == 0)
+          capacity = initialBufferSize;
 
-    bool empty() const { return size == 0; }
+        storage = reinterpret_cast<uint8_t*>(::malloc(capacity));
+      }
 
-    void reserve(unsigned newCapacity) {
-      if (!newCapacity || newCapacity >= maximumBufferSize || newCapacity <= capacity)
-        return;
+      ~ByteArray() {
+        if (storage != nullptr) {
+          ::free(storage);
+          storage = nullptr;
+        }
+      }
 
-      capacity = newCapacity;
-      storage = reinterpret_cast<uint8_t*>(::realloc(storage, capacity));
-    }
+      value_type* data() { return storage; }
+      const value_type* data() const { return storage; }
 
-    void prealloc(unsigned _size) { reserve(size + _size); }
+      iterator begin() { return iterator(storage); }
+      const_iterator begin() const { return const_iterator(storage); }
+      iterator end() { return iterator(storage + size); }
+      const_iterator end() const { return const_iterator(storage + size); }
 
-    void push_back(const value_type* value, unsigned len) {
-      if (!value || !len)
-        return;
+      bool empty() const { return size == 0; }
 
-      prealloc(sizeof(value_type) * len);
+      void reserve(unsigned newCapacity) {
+        if (!newCapacity || newCapacity >= maximumBufferSize || newCapacity <= capacity)
+          return;
 
-      if (size + sizeof(value_type) * len > capacity)
-        return;
+        capacity = newCapacity;
+        storage = reinterpret_cast<uint8_t*>(::realloc(storage, capacity));
+      }
 
-      const volatile value_type* a = value;
+      void prealloc(unsigned _size) { reserve(size + _size); }
 
-      for (unsigned i = 0; i != len * sizeof(value_type); ++i)
-        storage[size + i] = a[i];
+      void push_back(const value_type* value, unsigned len) {
+        if (!value || !len)
+          return;
 
-      size += sizeof(value_type) * len;
-    }
+        prealloc(sizeof(value_type) * len);
 
-    void read(iterator pos, value_type* value, unsigned len) const {
-      value[0] = 0;
+        if (size + sizeof(value_type) * len > capacity)
+          return;
 
-      if (len == 0 || pos < begin() || pos >= end() || (pos + len - 1) >= end())
-        return;
+        const volatile value_type* a = value;
 
-      std::memcpy(value, pos, sizeof(value_type) * len);
-    }
+        for (unsigned i = 0; i != len * sizeof(value_type); ++i)
+          storage[size + i] = a[i];
 
-  private:
-    value_type* storage;
-    unsigned capacity;
-    unsigned size;
+        size += sizeof(value_type) * len;
+      }
+
+      void read(iterator pos, value_type* value, unsigned len) const {
+        value[0] = 0;
+
+        if (len == 0 || pos < begin() || pos >= end() || (pos + len - 1) >= end())
+          return;
+
+        std::memcpy(value, pos, sizeof(value_type) * len);
+      }
+
+    private:
+      value_type* storage;
+      unsigned capacity;
+      unsigned size;
   };
 
 }
