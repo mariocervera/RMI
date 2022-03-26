@@ -22,7 +22,7 @@ namespace rmi {
 
       DataStream &operator>>(uint32_t &i) {
         return this->operator>>(reinterpret_cast<int32_t &>(i));
-  	  }
+      }
 
       DataStream &operator>>(int32_t &i) {
         readData(reinterpret_cast<uint8_t *>(&i), sizeof(i));
