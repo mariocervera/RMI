@@ -5,11 +5,11 @@
 
 namespace rmi {
 
-	// An abstract representation of an object that can be invoked remotely.
-	class IRemoteObject {
-		public:
-		  virtual ~IRemoteObject() = default;
-	};
+  // An abstract representation of an object that can be invoked remotely.
+  class IRemoteObject {
+    public:
+      virtual ~IRemoteObject() = default;
+  };
 }
 
 #endif // __INCLUDE_IREMOTEOBJECT_H__
