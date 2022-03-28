@@ -52,5 +52,8 @@ The key advantages of the *MethodCaller* class are:
    
    * It has a simple and consistent interface that can be easily invoked when a RMI request is received on the server.
 
+### Build
+
+This project can be built using CMake. The build file is 'CMakeLists.txt', which is located in the root directory.
 
 
