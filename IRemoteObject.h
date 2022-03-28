@@ -9,10 +9,7 @@ namespace rmi {
 	class IRemoteObject {
 		public:
 		  virtual ~IRemoteObject() = default;
-
-		  virtual std::unique_ptr<IRemoteObject> createNewInstance(ByteArray& args) const = 0;
 	};
-
 }
 
 #endif // __INCLUDE_IREMOTEOBJECT_H__

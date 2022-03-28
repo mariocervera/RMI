@@ -101,7 +101,6 @@ namespace rmi {
 
     return byteArray;
   }
-  
 }
 
 #endif // __INCLUDE_METHODCALLER_H__

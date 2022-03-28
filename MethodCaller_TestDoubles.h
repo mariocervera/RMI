@@ -6,20 +6,10 @@
 
 namespace rmi {
 
-  // A common superclass for all Remote Object Test Doubles. It avoids code duplication by providing a dummy
-  // implementation of the clone method.
-
-  class RemoteObjectTestDouble : public IRemoteObject {
-    public:
-      std::unique_ptr<IRemoteObject> createNewInstance(ByteArray& args) const override {
-        return std::unique_ptr<RemoteObjectTestDouble>();
-      }
-  };
-
   // A Spy implementation of an object to be invoked by a Method Caller. Tests can query these spies to find out
   // whether they have been called by the Method Caller or not.
 
-  class BooleanSpy : public RemoteObjectTestDouble {
+  class BooleanSpy : public IRemoteObject {
     public:
       void call() { called = true; }
       bool isCalled() { return called; }
@@ -31,7 +21,7 @@ namespace rmi {
   // A Spy implementation of an object to be invoked by a Method Caller. Tests can query these spies to find out
   // whether they have received (from the Method Caller) two different types of data: string and integer.
 
-  class MultitypeSpy : public RemoteObjectTestDouble {
+  class MultitypeSpy : public IRemoteObject {
     public:
       void call(std::string str, int number) {
         receivedString = str;
@@ -50,7 +40,7 @@ namespace rmi {
   // A Configurable Stub implementation of an object to be invoked by a Method Caller. Upon invocation, instances
   // of this class return an integer that is configured when the stub is instantiated.
 
-  class IntegerStub : public RemoteObjectTestDouble {
+  class IntegerStub : public IRemoteObject {
     public:
       explicit IntegerStub(int number) : value(number) { }
 
@@ -63,7 +53,7 @@ namespace rmi {
   // A Spy implementation of an object to be invoked by a Method Caller. Tests can query these spies to find out
   // whether they have received correct data. The data is passed by the Method Caller as a string reference.
 
-  class StringReferenceSpy : public RemoteObjectTestDouble {
+  class StringReferenceSpy : public IRemoteObject {
     public:
       void call(std::string& str) { receivedString = str; }
       void call(const std::string& str) { receivedString = str; }
@@ -77,7 +67,7 @@ namespace rmi {
   // A Configurable Stub implementation of an object to be invoked by a Method Caller. Tests can configure these
   // stubs with a string that will be returned when the stub is called.
 
-  class StringReferenceConfigurableStub : public RemoteObjectTestDouble {
+  class StringReferenceConfigurableStub : public IRemoteObject {
     public:
       void setStringToReturn(const std::string& str) { stringValue = str; }
 
@@ -90,7 +80,7 @@ namespace rmi {
   // A Configurable Stub implementation of an object to be invoked by a Method Caller. Tests can configure these
   // stubs with a string that will be returned when the stub is called.
 
-  class StringConstReferenceConfigurableStub : public RemoteObjectTestDouble {
+  class StringConstReferenceConfigurableStub : public IRemoteObject {
     public:
       void setStringToReturn(const std::string& str) { stringValue = str; }
 
@@ -99,7 +89,6 @@ namespace rmi {
     private:
       std::string stringValue = "";
   };
-
 }
 
 #endif // __INCLUDE_METHODCALLER_TESTDOUBLES_H__

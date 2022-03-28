@@ -17,7 +17,6 @@ namespace rmi {
 		  // Method response is also encoded as a Byte Array.
 		  virtual ByteArray invoke(IRemoteObject& obj, ByteArray& args) = 0;
 	};
-
 }
 
 #endif // __INCLUDE_IREMOTEMETHOD_H__
