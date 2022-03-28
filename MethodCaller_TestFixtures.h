@@ -8,19 +8,19 @@
 
 namespace rmi {
 
-  template <typename T> void serializeInto(ByteArray &byteArray, T value) {
+  template <typename T> void serializeInto(ByteArray& byteArray, T value) {
     DataStream stream(byteArray);
     stream << value;
   }
 
-  std::string serializeStringInto(ByteArray &byteArray) {
+  std::string serializeStringInto(ByteArray& byteArray) {
     std::string testString = "TestString";
     serializeInto<std::string>(byteArray, testString);
 
     return testString;
   }
 
-  int serializeIntegerInto(ByteArray & byteArray) {
+  int serializeIntegerInto(ByteArray& byteArray) {
     int testValue = 2;
     serializeInto<int>(byteArray, testValue);
 
@@ -69,25 +69,25 @@ namespace rmi {
   // A fixture for testing a Method Caller that wraps a method with void return type and one argument (of type string reference).
 
   class GivenMethodCallerOfVoidMethodWithNonConstReferenceArgument
-    : public GivenAMethodCaller<StringReferenceSpy, void(std::string &)> { };
+    : public GivenAMethodCaller<StringReferenceSpy, void(std::string&)> { };
 
 
   // A fixture for testing a Method Caller that wraps a method with void return type and one argument (of type string const reference).
 
   class GivenMethodCallerOfVoidMethodWithConstReferenceArgument
-    : public GivenAMethodCaller<StringReferenceSpy, void(const std::string &)> { };
+    : public GivenAMethodCaller<StringReferenceSpy, void(const std::string&)> { };
 
 
   // A fixture for testing a Method Caller that wraps a method that returns a string reference.
 
   class GivenMethodCallerOfMethodThatReturnsStringReference
-    : public GivenAMethodCaller<StringReferenceConfigurableStub, std::string &()> { };
+    : public GivenAMethodCaller<StringReferenceConfigurableStub, std::string&()> { };
 
 
   // A fixture for testing a Method Caller that wraps a method that returns a string const reference.
 
   class GivenMethodCallerOfMethodThatReturnsStringConstReference
-    : public GivenAMethodCaller<StringConstReferenceConfigurableStub, const std::string &()> { };
+    : public GivenAMethodCaller<StringConstReferenceConfigurableStub, const std::string&()> { };
 
 }
 

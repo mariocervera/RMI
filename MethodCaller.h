@@ -27,7 +27,7 @@ namespace rmi {
 
       // Deserializes the Byte Array of arguments prior to the invocation of the Method that is wrapped by this
       // Method Caller.
-      ByteArray invoke(IRemoteObject &obj, ByteArray &args) override {
+      ByteArray invoke(IRemoteObject& obj, ByteArray& args) override {
 
         std::tuple<std::decay_t<Args>...> argsTuple = deserializeByteArray(args);
 
@@ -38,7 +38,7 @@ namespace rmi {
       // Deserializes data from a Byte Array and returns it as a Tuple. The Tuple establishes the specific types that
       // will be used for deserialization. These types correspond to the types of the input arguments of the method
       // wrapped by this Method Caller.
-      std::tuple<std::decay_t<Args>...> deserializeByteArray(ByteArray &byteArray) {
+      std::tuple<std::decay_t<Args>...> deserializeByteArray(ByteArray& byteArray) {
         DataStream stream(byteArray);
         std::tuple<std::decay_t<Args>...> tuple;
 
@@ -49,8 +49,8 @@ namespace rmi {
 
       // Unrolls the deserialization operations. There will be one operation per Tuple element.
       template <std::size_t... Is>
-      void unrollDeserializationOperations(DataStream &stream,
-                                           std::tuple<std::decay_t<Args>...> &tuple,
+      void unrollDeserializationOperations(DataStream& stream,
+                                           std::tuple<std::decay_t<Args>...>& tuple,
                                            std::index_sequence<Is...>) {
 
         std::initializer_list<int>({((stream >> std::get<Is>(tuple)), 0)...});
@@ -60,7 +60,7 @@ namespace rmi {
       // that is resolved at compile time. It will only exist when R (the return type of the wrapped method) is void.
       // Since void methods do not return anything, this function does not require serialization of the result; therefore,
       // it returns an empty Byte Array.
-      ByteArray doCall(T &remoteObject, std::tuple<std::decay_t<Args>...> &argsTuple, std::true_type RIsVoid) {
+      ByteArray doCall(T& remoteObject, std::tuple<std::decay_t<Args>...>& argsTuple, std::true_type RIsVoid) {
 
         invokeMethodPointer(remoteObject, argsTuple);
         return ByteArray();
@@ -69,7 +69,7 @@ namespace rmi {
       // Calls the Method encapsulated in this Method Caller upon the Remote Object. This is an overloaded function that
       // is resolved at compile time. It will only exist when R (the return type of the wrapped method) is not void. Non-void
       // types require serialization of the result.
-      ByteArray doCall(T &remoteObject, std::tuple<std::decay_t<Args>...> &argsTuple, std::false_type RIsVoid) {
+      ByteArray doCall(T& remoteObject, std::tuple<std::decay_t<Args>...>& argsTuple, std::false_type RIsVoid) {
 
         R result = invokeMethodPointer(remoteObject, argsTuple);
         return serialize<R>(result);
@@ -77,7 +77,7 @@ namespace rmi {
 
       // Invokes the Method that is wrapped by this Method Caller. The invocation is performed upon a Remote Object. The
       // arguments are contained in a Tuple.
-      R invokeMethodPointer(T &remoteObject, std::tuple<std::decay_t<Args>...> &argsTuple) {
+      R invokeMethodPointer(T& remoteObject, std::tuple<std::decay_t<Args>...>& argsTuple) {
 
         return invokeMethodPtr_unrollArguments(remoteObject, argsTuple, std::index_sequence_for<Args...>{});
       }
@@ -85,7 +85,7 @@ namespace rmi {
       // Invokes the Method that is wrapped by this Method Caller. The Tuple is unrolled to generate the method arguments that
       // are required for the call.
       template <std::size_t... Is>
-      R invokeMethodPtr_unrollArguments(T &remoteObject, std::tuple<std::decay_t<Args>...> &argsTuple, std::index_sequence<Is...>) {
+      R invokeMethodPtr_unrollArguments(T& remoteObject, std::tuple<std::decay_t<Args>...>& argsTuple, std::index_sequence<Is...>) {
 
         return (remoteObject.*wrappedMethod)(std::get<Is>(argsTuple)...);
       }

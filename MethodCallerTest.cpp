@@ -7,15 +7,15 @@ namespace rmi {
 
   // Custom assertions.
   
-  static void assertRemoteObjectGetsCorrectArguments(MultitypeSpy &remoteObject,
-                                                     std::string &serializedString,
+  static void assertRemoteObjectGetsCorrectArguments(MultitypeSpy& remoteObject,
+                                                     std::string& serializedString,
                                                      int serializedInteger) {
     ASSERT_EQ(remoteObject.getReceivedString(), serializedString);
     ASSERT_EQ(remoteObject.getReceivedInteger(), serializedInteger);
   }
 
   template <typename T>
-  static void assertByteArrayContains(ByteArray &byteArray, T expectedValue) {
+  static void assertByteArrayContains(ByteArray& byteArray, T expectedValue) {
 
     DataStream stream(byteArray);
     T valueInByteArray;
@@ -46,7 +46,7 @@ namespace rmi {
     remoteObject.setStringToReturn(expectedString);
     ByteArray emptyArguments;
 
-    ByteArray resultByteArray = remoteMethod->invoke(remoteObject, emptyArguments);
+    auto& resultByteArray = remoteMethod->invoke(remoteObject, emptyArguments);
 
     assertByteArrayContains<std::string>(resultByteArray, expectedString);
   }
@@ -69,7 +69,7 @@ namespace rmi {
     BooleanSpy remoteObject;
     ByteArray emptyArguments;
 
-    const ByteArray byteArray = remoteMethod->invoke(remoteObject, emptyArguments);
+    const auto& byteArray = remoteMethod->invoke(remoteObject, emptyArguments);
 
     ASSERT_TRUE(byteArray.empty());
   }
@@ -92,7 +92,7 @@ namespace rmi {
     IntegerStub remoteObject(expectedReturnValue);
     ByteArray emptyArguments;
 
-    ByteArray resultByteArray = remoteMethod->invoke(remoteObject, emptyArguments);
+    auto& resultByteArray = remoteMethod->invoke(remoteObject, emptyArguments);
 
     assertByteArrayContains<int>(resultByteArray, expectedReturnValue);
   }
@@ -116,5 +116,4 @@ namespace rmi {
 
     testMethodWithStringReferenceReturnType<StringConstReferenceConfigurableStub>(std::move(remoteMethod));
   }
-
 }

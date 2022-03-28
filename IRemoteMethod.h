@@ -15,7 +15,7 @@ namespace rmi {
 
 		  // Invokes this Method on the given Remote Object passing the Arguments as a Byte Array. The
 		  // Method response is also encoded as a Byte Array.
-		  virtual ByteArray invoke(IRemoteObject &obj, ByteArray &args) = 0;
+		  virtual ByteArray invoke(IRemoteObject& obj, ByteArray& args) = 0;
 	};
 
 }

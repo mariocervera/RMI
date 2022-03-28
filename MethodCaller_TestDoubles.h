@@ -11,7 +11,7 @@ namespace rmi {
 
   class RemoteObjectTestDouble : public IRemoteObject {
     public:
-      std::unique_ptr<IRemoteObject> createNewInstance(ByteArray &args) const override {
+      std::unique_ptr<IRemoteObject> createNewInstance(ByteArray& args) const override {
         return std::unique_ptr<RemoteObjectTestDouble>();
       }
   };
@@ -65,10 +65,10 @@ namespace rmi {
 
   class StringReferenceSpy : public RemoteObjectTestDouble {
     public:
-      void call(std::string &str) { receivedString = str; }
-      void call(const std::string &str) { receivedString = str; }
+      void call(std::string& str) { receivedString = str; }
+      void call(const std::string& str) { receivedString = str; }
 
-      std::string &getReceivedString() { return receivedString; }
+      std::string& getReceivedString() { return receivedString; }
 
     private:
       std::string receivedString = "a";
@@ -79,9 +79,9 @@ namespace rmi {
 
   class StringReferenceConfigurableStub : public RemoteObjectTestDouble {
     public:
-      void setStringToReturn(const std::string &str) { stringValue = str; }
+      void setStringToReturn(const std::string& str) { stringValue = str; }
 
-      std::string &call() { return stringValue; }
+      std::string& call() { return stringValue; }
 
     private:
       std::string stringValue = "";
@@ -92,9 +92,9 @@ namespace rmi {
 
   class StringConstReferenceConfigurableStub : public RemoteObjectTestDouble {
     public:
-      void setStringToReturn(const std::string &str) { stringValue = str; }
+      void setStringToReturn(const std::string& str) { stringValue = str; }
 
-      const std::string &call() { return stringValue; }
+      const std::string& call() { return stringValue; }
 
     private:
       std::string stringValue = "";

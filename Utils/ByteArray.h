@@ -5,6 +5,8 @@
 
 namespace rmi {
 
+  // A class that implements a dynamic Byte Array.
+  // Disclaimer: just for testing purposes (not intended to be a complete implementation).
   class ByteArray {
 
     enum {
@@ -18,21 +20,11 @@ namespace rmi {
       using const_iterator = const value_type*;
 
       ByteArray(const ByteArray& other) : capacity(other.capacity), size(other.size) {
-
-        if (capacity == 0)
-          capacity = initialBufferSize;
-
         storage = reinterpret_cast<uint8_t*>(::malloc(capacity));
-
-        size = other.size;
         std::memcpy(storage, other.data(), sizeof(value_type) * size);
       }
 
       explicit ByteArray(unsigned initialCapacity = initialBufferSize) : capacity(initialCapacity), size(0) {
-
-        if (initialCapacity == 0)
-          capacity = initialBufferSize;
-
         storage = reinterpret_cast<uint8_t*>(::malloc(capacity));
       }
 
@@ -53,36 +45,18 @@ namespace rmi {
 
       bool empty() const { return size == 0; }
 
-      void reserve(unsigned newCapacity) {
-        if (!newCapacity || newCapacity >= maximumBufferSize || newCapacity <= capacity)
-          return;
-
-        capacity = newCapacity;
-        storage = reinterpret_cast<uint8_t*>(::realloc(storage, capacity));
-      }
-
-      void prealloc(unsigned _size) { reserve(size + _size); }
-
       void push_back(const value_type* value, unsigned len) {
-        if (!value || !len)
-          return;
+        unsigned sizeOfNewContent= sizeof(value_type) * len;
+        capacity = size + sizeOfNewContent;
+        storage = reinterpret_cast<uint8_t*>(::realloc(storage, capacity));
 
-        prealloc(sizeof(value_type) * len);
+        for (unsigned i = 0; i != sizeOfNewContent; ++i)
+          storage[size + i] = value[i];
 
-        if (size + sizeof(value_type) * len > capacity)
-          return;
-
-        const volatile value_type* a = value;
-
-        for (unsigned i = 0; i != len * sizeof(value_type); ++i)
-          storage[size + i] = a[i];
-
-        size += sizeof(value_type) * len;
+        size += sizeOfNewContent;
       }
 
       void read(iterator pos, value_type* value, unsigned len) const {
-        value[0] = 0;
-
         if (len == 0 || pos < begin() || pos >= end() || (pos + len - 1) >= end())
           return;
 
@@ -94,7 +68,6 @@ namespace rmi {
       unsigned capacity;
       unsigned size;
   };
-
 }
 
 #endif // __INCLUDE_BYTEARRAY_H__
